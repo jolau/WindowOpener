@@ -1,0 +1,93 @@
+esphome:
+  name: window_opener_bathroom
+  platform: ESP8266
+  board: d1_mini
+
+wifi:
+  ssid: "EngineeringResidency"
+  password: "Letmeinnow"
+  fast_connect: true
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    ssid: "Window Opener Bathroom"
+    password: "OgbdD0g36O0e"
+
+captive_portal:
+
+# Enable logging
+logger:
+
+# Enable Home Assistant API
+api:
+  password: "Wlcm2thftr"
+
+ota:
+  password: "Wlcm2thftr"
+
+status_led:
+  pin: D4
+
+binary_sensor:
+  - platform: gpio
+    id: close_endstop_binary_sensor
+    name: "Bathroom Window Closed"
+    pin: 
+      number: D7
+      mode: INPUT
+      inverted: true
+    on_press:
+      then:
+      - cover.control:
+          id: window_opener
+          position: 0%
+  - platform: gpio
+    id: open_endstop_binary_sensor
+    name: "Bathroom Window Open"
+    pin:
+      number: D3
+      mode: INPUT_PULLUP
+      inverted: true
+    on_press:
+      then:
+      - cover.control:
+          id: window_opener
+          position: 100%
+
+output:
+  - platform: esp8266_pwm
+    id: pwm_output
+    pin: D1
+    frequency: 50 Hz
+
+servo:
+  - id: window_servo
+    output: pwm_output
+    min_level: 5%
+    idle_level: 7.5%
+    max_level: 10%
+
+cover:
+  - platform: endstop
+    name: "Bathroom Window Opener"
+    id: window_opener
+    device_class: window
+    max_duration: 8s
+
+    open_action:
+      - servo.write:
+          id: window_servo
+          level: 25%
+    open_duration: 5s
+    open_endstop: open_endstop_binary_sensor
+
+    close_action:
+      - servo.write:
+          id: window_servo
+          level: -25%
+    close_duration: 4s
+    close_endstop: close_endstop_binary_sensor
+
+    stop_action:
+      - servo.write:
+          id: window_servo
+          level: 0%
